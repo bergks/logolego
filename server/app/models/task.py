@@ -11,3 +11,4 @@ class Task(Base):
     description = Column(String, nullable=False)
 
     type = relationship("TaskType", lazy="joined")
+    task_cards = relationship("TaskCard", lazy="joined", cascade="all, delete-orphan")
