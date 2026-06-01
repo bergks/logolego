@@ -10,4 +10,4 @@ class LogopedAuth(Base):
     email = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
 
-    logoped = relationship("Logoped", lazy="joined")
+    logoped = relationship("Logoped", back_populates="logoped_auth")

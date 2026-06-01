@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
 
@@ -12,3 +13,6 @@ class PupilHomework(Base):
     status = Column(Integer, nullable=False, default=0)
     assigned_at = Column(DateTime, nullable=False, server_default=func.now())
     completed_at = Column(DateTime, nullable=True)
+
+    module = relationship("Module", lazy="joined")
+    pupil = relationship("Pupil", lazy="joined")

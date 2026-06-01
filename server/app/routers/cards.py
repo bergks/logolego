@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.schemas.card import CardCreate, CardResponse
 from app.services.card_service import CardService
+from app.auth import get_current_logoped
+from app.models.logoped import Logoped
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
@@ -18,14 +20,22 @@ def _card_to_response(service, card):
 
 
 @router.get("/", response_model=list[CardResponse])
-def list_cards(type_id: int | None = None, db: Session = Depends(get_db)):
+def list_cards(
+    type_id: int | None = None,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = CardService(db)
     cards = service.get_cards_by_type(type_id) if type_id else service.get_all_cards()
     return [_card_to_response(service, card) for card in cards]
 
 
 @router.get("/{card_id}", response_model=CardResponse)
-def get_card(card_id: int, db: Session = Depends(get_db)):
+def get_card(
+    card_id: int,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = CardService(db)
     card_and_content = service.get_card_with_content(card_id)
     if not card_and_content:
@@ -35,7 +45,11 @@ def get_card(card_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=CardResponse, status_code=201)
-def create_card(data: CardCreate, db: Session = Depends(get_db)):
+def create_card(
+    data: CardCreate,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = CardService(db)
     try:
         card = service.create_card(data.type_id, data.content)
@@ -45,7 +59,12 @@ def create_card(data: CardCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{card_id}", response_model=CardResponse)
-def update_card(card_id: int, data: CardCreate, db: Session = Depends(get_db)):
+def update_card(
+    card_id: int,
+    data: CardCreate,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = CardService(db)
     try:
         card = service.update_card(card_id, data.content)
@@ -55,7 +74,11 @@ def update_card(card_id: int, data: CardCreate, db: Session = Depends(get_db)):
 
 
 @router.delete("/{card_id}", status_code=204)
-def delete_card(card_id: int, db: Session = Depends(get_db)):
+def delete_card(
+    card_id: int,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = CardService(db)
     try:
         service.delete_card(card_id)

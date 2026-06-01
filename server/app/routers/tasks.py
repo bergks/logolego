@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.schemas.task import TaskCreate, TaskResponse
 from app.services.task_service import TaskService
+from app.auth import get_current_logoped
+from app.models.logoped import Logoped
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -22,14 +24,21 @@ def _task_to_response(service, task):
 
 
 @router.get("/", response_model=list[TaskResponse])
-def list_tasks(db: Session = Depends(get_db)):
+def list_tasks(
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = TaskService(db)
     tasks = service.get_all_tasks()
     return [_task_to_response(service, task) for task in tasks]
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
-def get_task(task_id: int, db: Session = Depends(get_db)):
+def get_task(
+    task_id: int,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = TaskService(db)
     task = service.get_task(task_id)
     if not task:
@@ -38,7 +47,11 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=TaskResponse, status_code=201)
-def create_task(data: TaskCreate, db: Session = Depends(get_db)):
+def create_task(
+    data: TaskCreate,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = TaskService(db)
     try:
         task = service.create_task(
@@ -53,7 +66,12 @@ def create_task(data: TaskCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{task_id}", response_model=TaskResponse)
-def update_task(task_id: int, data: TaskCreate, db: Session = Depends(get_db)):
+def update_task(
+    task_id: int,
+    data: TaskCreate,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = TaskService(db)
     try:
         task = service.update_task(
@@ -68,7 +86,12 @@ def update_task(task_id: int, data: TaskCreate, db: Session = Depends(get_db)):
 
 
 @router.delete("/{task_id}", status_code=204)
-def delete_task(task_id: int, delete_cards: bool = Query(default=False), db: Session = Depends(get_db)):
+def delete_task(
+    task_id: int,
+    delete_cards: bool = Query(default=False),
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = TaskService(db)
     try:
         service.delete_task(task_id, delete_cards=delete_cards)

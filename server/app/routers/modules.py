@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.schemas.module import ModuleCreate, ModuleResponse
 from app.services.module_service import ModuleService
+from app.auth import get_current_logoped
+from app.models.logoped import Logoped
 
 router = APIRouter(prefix="/modules", tags=["modules"])
 
@@ -20,14 +22,21 @@ def _module_to_response(module):
 
 
 @router.get("/", response_model=list[ModuleResponse])
-def list_modules(db: Session = Depends(get_db)):
+def list_modules(
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = ModuleService(db)
     modules = service.get_all_modules()
     return [_module_to_response(m) for m in modules]
 
 
 @router.get("/{module_id}", response_model=ModuleResponse)
-def get_module(module_id: int, db: Session = Depends(get_db)):
+def get_module(
+    module_id: int,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = ModuleService(db)
     module = service.get_module(module_id)
     if not module:
@@ -36,7 +45,11 @@ def get_module(module_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=ModuleResponse, status_code=201)
-def create_module(data: ModuleCreate, db: Session = Depends(get_db)):
+def create_module(
+    data: ModuleCreate,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = ModuleService(db)
     try:
         module = service.create_module(
@@ -50,7 +63,12 @@ def create_module(data: ModuleCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{module_id}", response_model=ModuleResponse)
-def update_module(module_id: int, data: ModuleCreate, db: Session = Depends(get_db)):
+def update_module(
+    module_id: int,
+    data: ModuleCreate,
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = ModuleService(db)
     try:
         module = service.update_module(
@@ -65,7 +83,12 @@ def update_module(module_id: int, data: ModuleCreate, db: Session = Depends(get_
 
 
 @router.delete("/{module_id}", status_code=204)
-def delete_module(module_id: int, delete_tasks: bool = Query(default=False), db: Session = Depends(get_db)):
+def delete_module(
+    module_id: int,
+    delete_tasks: bool = Query(default=False),
+    current: Logoped = Depends(get_current_logoped),
+    db: Session = Depends(get_db),
+):
     service = ModuleService(db)
     try:
         service.delete_module(module_id, delete_tasks=delete_tasks)
